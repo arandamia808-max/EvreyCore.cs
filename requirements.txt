@@ -1,0 +1,36 @@
+# Telegram Bot Framework
+aiogram==2.25.2
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# HTTP Requests
+requests>=2.31.0
+
+# Data Visualization
+matplotlib>=3.8.0
+numpy>=1.26.0
+
+# Image Processing (for code screenshots)
+Pillow>=10.1.0
+
+# Code Minification/Beautification
+jsbeautifier>=1.14.11
+cssbeautifier>=1.14.11
+python-minifier>=2.9.0
+
+# Database (SQLite is built-in, but we add aiosqlite for async)
+aiosqlite>=0.19.0
+
+# Syntax Highlighting for code
+Pygments>=2.17.0
+
+# HTML/XML parsing
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+aiosqlite
+beautifulsoup4
+cssbeautifier
+jsbeautifier
+lxml
+python-minifier
