@@ -1,0 +1,139 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <Nullable>enable</Nullable>
+    <LangVersion>11</LangVersion>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    
+    <!-- ВАЖНО: копируем ВСЕ зависимости локально -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalSatelliteAssemblies>true</CopyLocalSatelliteAssemblies>
+    
+    <!-- Настройки оптимизации -->
+    <Optimize>true</Optimize>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <!-- ВАЖНО: Явно задаем версии зависимостей которые точно работают с TShock 5.2 -->
+  <ItemGroup>
+    <!-- Основные API -->
+    <PackageReference Include="TShockAPI" Version="5.2.0" />
+    <PackageReference Include="TerrariaAPI.Server" Version="3.1.2" />
+    
+    <!-- JSON - обязательная версия для TShock -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    
+    <!-- Базы данных - обе версии для совместимости -->
+    <PackageReference Include="MySql.Data" Version="8.2.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.14" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.118" />
+    
+    <!-- XNA/MonoGame - для работы с Terraria -->
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
+    <PackageReference Include="Microsoft.Xna.Framework" Version="4.0.30901" />
+    
+    <!-- Системные зависимости -->
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
+    <PackageReference Include="System.Memory" Version="4.5.5" />
+    <PackageReference Include="System.Buffers" Version="4.5.1" />
+    <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+    
+    <!-- Для сериализации -->
+    <PackageReference Include="System.Text.Json" Version="6.0.8" />
+    
+    <!-- Для работы с XML (если нужно) -->
+    <PackageReference Include="System.Xml.ReaderWriter" Version="4.3.1" />
+    <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
+  </ItemGroup>
+
+  <!-- ВАЖНО: Принудительно включаем необходимые сборки -->
+  <ItemGroup>
+    <Reference Include="OTAPI">
+      <HintPath>..\..\..\..\OTAPI.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>..\..\..\..\Mono.Cecil.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Mono.Security">
+      <HintPath>..\..\..\..\Mono.Security.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- ВАЖНО: Явно копируем ВСЕ зависимости после сборки -->
+  <Target Name="PostBuild" AfterTargets="Build">
+    <Message Importance="high" Text="=== COPYING ALL DEPENDENCIES ===" />
+    
+    <!-- Создаем папки для плагина -->
+    <MakeDir Directories="$(OutputPath)Plugins\" />
+    <MakeDir Directories="$(OutputPath)Dependencies\" />
+    
+    <!-- Копируем основной DLL -->
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" 
+          DestinationFolder="$(OutputPath)Plugins\" />
+    
+    <!-- Копируем PDB если есть -->
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).pdb" 
+          DestinationFolder="$(OutputPath)Plugins\" 
+          Condition="Exists('$(OutputPath)$(AssemblyName).pdb')" />
+    
+    <!-- Копируем ВСЕ зависимости -->
+    <ItemGroup>
+      <AllDependencies Include="$(OutputPath)*.dll" 
+                      Exclude="$(OutputPath)$(AssemblyName).dll;$(OutputPath)OTAPI.dll" />
+    </ItemGroup>
+    
+    <Copy SourceFiles="@(AllDependencies)" 
+          DestinationFolder="$(OutputPath)Dependencies\" />
+    
+    <Message Importance="high" Text="Copied @(AllDependencies->Count()) dependencies" />
+    
+    <!-- Создаем инструкцию -->
+    <WriteLinesToFile File="$(OutputPath)INSTALL.txt" 
+                      Lines="MiniCore Plugin Installation
+1. Copy ALL files from 'Dependencies' folder to your TShock ServerPlugins folder
+2. Copy '$(AssemblyName).dll' from 'Plugins' folder to ServerPlugins
+3. Restart TShock server
+4. Use /mhelp in-game
+
+Note: If dependencies already exist in ServerPlugins, you can skip step 1." />
+    
+    <Message Importance="high" Text="=== BUILD COMPLETE ===" />
+    <Message Importance="high" Text="Plugin: $(OutputPath)Plugins\$(AssemblyName).dll" />
+    <Message Importance="high" Text="Dependencies: $(OutputPath)Dependencies\" />
+  </Target>
+
+  <!-- ВАЖНО: Очищаем при пересборке -->
+  <Target Name="CleanExtra" AfterTargets="Clean">
+    <RemoveDir Directories="$(OutputPath)Plugins;$(OutputPath)Dependencies" />
+    <Delete Files="$(OutputPath)INSTALL.txt" />
+  </Target>
+
+</Project>
