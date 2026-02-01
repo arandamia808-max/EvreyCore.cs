@@ -1,0 +1,87 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <Nullable>enable</Nullable>
+    <LangVersion>11</LangVersion>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <AssemblyName>MiniCore</AssemblyName>
+    <RootNamespace>MiniCore</RootNamespace>
+    <Version>1.3.1</Version>
+    
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    
+    <Optimize>true</Optimize>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="MySql.Data" Version="8.2.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.14" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="OTAPI">
+      <HintPath>lib\OTAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TerrariaServer">
+      <HintPath>lib\TerrariaServer.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TShockAPI">
+      <HintPath>lib\TShockAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>lib\Mono.Cecil.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="Build">
+    <Message Importance="high" Text="=== BUILD COMPLETE ===" />
+    <Message Importance="high" Text="Plugin: $(OutputPath)$(AssemblyName).dll" />
+    
+    <MakeDir Directories="$(OutputPath)ServerPlugins\" />
+    
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" 
+          DestinationFolder="$(OutputPath)ServerPlugins\" />
+    
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).pdb" 
+          DestinationFolder="$(OutputPath)ServerPlugins\" 
+          Condition="Exists('$(OutputPath)$(AssemblyName).pdb')" />
+    
+    <WriteLinesToFile File="$(OutputPath)INSTALL.txt" 
+                      Lines="MiniCore Plugin v1.3.1;1. Скопируйте MiniCore.dll в папку ServerPlugins вашего TShock;2. Перезапустите сервер;3. Используйте /mhelp для списка команд" 
+                      Overwrite="true" />
+  </Target>
+
+  <Target Name="CleanExtra" AfterTargets="Clean">
+    <RemoveDir Directories="$(OutputPath)ServerPlugins" />
+    <Delete Files="$(OutputPath)INSTALL.txt" />
+  </Target>
+
+</Project>
