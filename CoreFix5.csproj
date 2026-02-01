@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Целевая платформа -->
+    <TargetFramework>net6.0</TargetFramework>
+
+    <!-- .NET 6 = максимум C# 10 -->
+    <LangVersion>10</LangVersion>
+
+    <!-- Библиотека -->
+    <OutputType>Library</OutputType>
+
+    <!-- Опционально, но полезно -->
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <!-- Ссылки на внешние DLL -->
+  <ItemGroup>
+    <Reference Include="OTAPI">
+      <HintPath>lib/OTAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <Reference Include="TerrariaServer">
+      <HintPath>lib/TerrariaServer.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <Reference Include="TShockAPI">
+      <HintPath>lib/TShockAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <Reference Include="Mono.Cecil">
+      <HintPath>lib/Mono.Cecil.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>
